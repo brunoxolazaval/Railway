@@ -34,62 +34,67 @@ import java.util.List;
 
 @Mixin(value = TrackBlock.class, remap = false)
 public abstract class MixinTrackBlock extends Block implements IHasTrackMaterial {
-  public MixinTrackBlock(Properties pProperties) {
-    super(pProperties);
-  }
+    public MixinTrackBlock(Properties pProperties) {
+        super(pProperties);
+    }
 
-  /**
-   * @author Railways
-   * @reason Need to add different types of items
-   */
-  @Overwrite
-  public ItemRequirement getRequiredItems(BlockState state, BlockEntity te) {
-    int sameTypeTrackAmount = 1;
-    EnumMap<TrackMaterial, Integer> otherTrackAmounts = new EnumMap<>(TrackMaterial.class);
-    int girderAmount = 0;
+    /**
+     * @author Railways
+     * @reason Need to add different types of items
+     */
+    @Overwrite
+    public ItemRequirement getRequiredItems(BlockState state, BlockEntity te) {
+        int sameTypeTrackAmount = 1;
+        EnumMap<TrackMaterial, Integer> otherTrackAmounts = new EnumMap<>(TrackMaterial.class);
+        int girderAmount = 0;
 
-    if (te instanceof TrackTileEntity track) {
-      for (BezierConnection bezierConnection : track.getConnections()
-          .values()) {
-        if (!bezierConnection.isPrimary())
-          continue;
-        TrackMaterial material = ((IHasTrackMaterial) bezierConnection).getMaterial();
-        if (material == getMaterial()) {
-          sameTypeTrackAmount += bezierConnection.getTrackItemCost();
-        } else {
-          otherTrackAmounts.put(material, otherTrackAmounts.getOrDefault(material, 0) + 1);
+        if (te instanceof TrackTileEntity track) {
+            for (BezierConnection bezierConnection : track.getConnections()
+                .values()) {
+                if (!bezierConnection.isPrimary())
+                    continue;
+                TrackMaterial material = ((IHasTrackMaterial) bezierConnection).getMaterial();
+                if (material == getMaterial()) {
+                    sameTypeTrackAmount += bezierConnection.getTrackItemCost();
+                } else {
+                    otherTrackAmounts.put(material, otherTrackAmounts.getOrDefault(material, 0) + 1);
+                }
+                girderAmount += bezierConnection.getGirderItemCost();
+            }
         }
-        girderAmount += bezierConnection.getGirderItemCost();
-      }
+
+        List<ItemStack> stacks = new ArrayList<>();
+        while (sameTypeTrackAmount > 0) {
+            stacks.add(new ItemStack(state.getBlock(), Math.min(sameTypeTrackAmount, 64)));
+            sameTypeTrackAmount -= 64;
+        }
+        for (TrackMaterial material : otherTrackAmounts.keySet()) {
+            int amt = otherTrackAmounts.get(material);
+            while (amt > 0) {
+                stacks.add(new ItemStack(material.getTrackBlock().get(), Math.min(amt, 64)));
+                amt -= 64;
+            }
+        }
+        while (girderAmount > 0) {
+            stacks.add(AllBlocksWrapper.metalGirder().asStack(Math.min(girderAmount, 64)));
+            girderAmount -= 64;
+        }
+
+        return new ItemRequirement(ItemRequirement.ItemUseType.CONSUME, stacks);
     }
 
-    List<ItemStack> stacks = new ArrayList<>();
-    while (sameTypeTrackAmount > 0) {
-      stacks.add(new ItemStack(state.getBlock(), Math.min(sameTypeTrackAmount, 64)));
-      sameTypeTrackAmount -= 64;
-    }
-    for (TrackMaterial material : otherTrackAmounts.keySet()) {
-      int amt = otherTrackAmounts.get(material);
-      while (amt > 0) {
-        stacks.add(new ItemStack(material.getTrackBlock().get(), Math.min(amt, 64)));
-        amt -= 64;
-      }
-    }
-    while (girderAmount > 0) {
-      stacks.add(AllBlocksWrapper.metalGirder().asStack(Math.min(girderAmount, 64)));
-      girderAmount -= 64;
+    @Inject(method = "use", at = @At("HEAD"), cancellable = true, remap = true)
+    private void extendedUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir) {
+        InteractionResult result = CustomTrackBlock.casingUse(state, world, pos, player, hand, hit);
+        if (result != null) {
+            cir.setReturnValue(result);
+        }
     }
 
-    return new ItemRequirement(ItemRequirement.ItemUseType.CONSUME, stacks);
-  }
+    /*@Inject(method = "")
+    private void setDiscoveredLocationMaterial() {
 
-  @Inject(method = "use", at = @At("HEAD"), cancellable = true, remap = true)
-  private void extendedUse(BlockState state, Level world, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir) {
-    InteractionResult result = CustomTrackBlock.casingUse(state, world, pos, player, hand, hit);
-    if (result != null) {
-      cir.setReturnValue(result);
-    }
-  }
+    }*/
 
   /* Moved to MixinBlockBehaviour
   @SuppressWarnings("deprecation")
