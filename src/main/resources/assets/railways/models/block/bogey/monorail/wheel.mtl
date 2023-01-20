@@ -1,0 +1,32 @@
+# Blender 3.3.0 MTL File: 'monorail-bogey.blend'
+# www.blender.org
+
+newmtl 00_Shaft
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd D:/Create/src/main/resources/assets/create/models/block/track/bogey/#axis
+
+newmtl 00_Shaft_end
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd D:/Create/src/main/resources/assets/create/models/block/track/bogey/#axis_top
+
+newmtl wheel_Large
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 1
+map_Kd D:/Create/src/main/resources/assets/create/models/block/track/bogey/#wheel
